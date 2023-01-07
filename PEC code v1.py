@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.ma as ma
 import matplotlib.pyplot as plt
 from scipy import integrate
 
@@ -12,7 +13,7 @@ def PSF_lr():
     eta : Gaussian weighting (dimensionless)
     '''
     # PSF runs from -3*beta to 3*beta; each r val corresponds to 100nm if beta is given in um
-    r = np.arange(-3*round(beta), 3*round(beta), 0.1)
+    r = np.arange(-3*round(beta), 3*round(beta)+cell_size, cell_size)
     PSF = 1/(np.pi*(1+eta)) * eta/(beta**2) * np.exp(-np.abs(r**2)/beta**2)
     PSF_norm = PSF / integrate.simps(PSF)
     return PSF_norm
@@ -30,49 +31,77 @@ def PSF_pl():
     nu : chosen to normalise PSF (nm)
     '''
     # PSF runs from -3*beta to 3*beta; each r val corresponds to 100nm if beta is given in um
-    r = np.arange(-3*round(beta), 3*round(beta), 0.1)
+    r = np.arange(-3*round(beta), 3*round(beta)+cell_size, cell_size)
     PSF = 1/(np.pi*(1+eta)) * (nu**(-2)/(1 + (np.abs(r)/gamma)**sigma) \
                                + eta/(beta**2) * np.exp(-np.abs((r)**2)/beta**2))
     PSF_norm = PSF / integrate.simps(PSF)
     return PSF_norm
 
 
+def cnv_tr(dose, PSF):
+    cnv = np.convolve(dose, PSF)
+    cnv_tr = cnv[int(np.round(np.size(PSF)/2)):-int(np.round(np.size(PSF)/2))]
+    return cnv_tr
+
+
+# General parameters
+gran = 100  # Granularity (nm)
+cell_size = gran/1000  # Convert to um
+
 # Scattering parameters
-beta = 28.5     # um, long range scattering
-eta = 0.75      # dimensionless
+beta = 6     # um, long range scattering
+eta = 0.5      # dimensionless
 gamma = 8.01    # nm
 sigma = 2.60    # dimensionless
 nu = 18.3       # nm
 
 # Porperties of substrate
-subs_width = 200 # substrate width (um)
-n_cells = subs_width * 1000   # number of r values such that each corresponds to a cell of width 100nm
-x = np.linspace(-subs_width/2, subs_width/2, n_cells)
-
-
-# Plot PSFs
-plt.figure()
-plt.xlabel(r'r [$\mu \mathrm{m}$]')
-plt.ylabel(r'PSF [$\mu \mathrm{m} ^{-2}$]')
-plt.title('Normlised point-spread functions')
-plt.plot(PSF_pl(), label='power law + Gaussian')
-plt.plot(PSF_lr(), label='long range Gaussian only')
-plt.legend()
-
-'''
-# Maps out dose pattern WITHOUT scattering for a number of pointlike features at r=r_f
+subs_width = 40  # substrate width (um)
+x = np.arange(0, subs_width+cell_size, cell_size)
+n_cells = np.size(x)
+# Map out desired feature pattern WITHOUT considering scattering
 # Dose at each r value is either 1 or 0
-r_f = np.array([10, 20, 30, 40, 80, 100, 150, 190])       # the r-position of the features (um)
-beam_rad = 5    # beam radius (nm)
-D_i = np.zeros(n_cells)
-for i in r_f:
-    D_i[int(np.round(n_cells * i/subs_width)-beam_rad) : int(np.round(n_cells * i/subs_width)+beam_rad)] = 1
+D_0 = np.zeros(np.size(x))
+# Start/end points of desired features (um)
+startend = np.array([[0, 10],
+                     [11, 20],
+                     [21, 22],
+                     [30, 31]])
+for i in startend:
+    D_0[int(i[0]/cell_size) : int(i[1]/cell_size)] = 1
 
-plt.figure()
-plt.plot(D_i)
-plt.title('Dose pattern without electron scattering')
 
-plt.figure()
-plt.plot(np.convolve(D_i, PSF_lr(r, beta=5, eta=eta)[1])) # , label='$\beta$ = {}'.format(b))
+# %% Plots
+
+# # Plot PSFs
+# fig, ax = plt.subplots()
+# ax.set_xlabel(r'r [$\mu \mathrm{m}$]')
+# ax.set_ylabel(r'PSF [$\mu \mathrm{m} ^{-2}$]')
+# ax.set_title('Normlised point-spread functions')
+# ax.plot(PSF_pl(), label='power law + Gaussian')
+# ax.plot(PSF_lr(), label='long range Gaussian only')
+# ax.legend()
+
+# # Plot desired features
+# fig, ax = plt.subplots()
+# ax.set_title('Desired dose pattern as in Watson paper')
+# ax.plot(x, D_0)
+
+# Plot convolution
+fig, ax = plt.subplots()
 '''
+D_i = D_0
+for i in range(20):
+    D_iplus1 = 2 * D_0 * (1 - cnv_tr(D_i, PSF_lr()))
+    D_i = D_iplus1 / np.max(D_iplus1)  # normalise
+# ax.plot(x, D_i)
+'''
+D_i = D_0
+for i in range(20):
+    D_iplus1 = 2 * D_0 * (1 - cnv_tr(D_i, PSF_lr())) + cnv_tr(D_i, PSF_lr())
+    D_i = D_iplus1  / np.max(D_iplus1)  # normalise
+ax.plot(x, D_i)
+
 plt.show()
+
+# %%
