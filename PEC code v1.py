@@ -1,5 +1,4 @@
 import numpy as np
-import numpy.ma as ma
 import matplotlib.pyplot as plt
 from scipy import integrate
 
@@ -73,19 +72,19 @@ for i in startend:
 
 # %% Plots
 
-# # Plot PSFs
-# fig, ax = plt.subplots()
-# ax.set_xlabel(r'r [$\mu \mathrm{m}$]')
-# ax.set_ylabel(r'PSF [$\mu \mathrm{m} ^{-2}$]')
-# ax.set_title('Normlised point-spread functions')
-# ax.plot(PSF_pl(), label='power law + Gaussian')
-# ax.plot(PSF_lr(), label='long range Gaussian only')
-# ax.legend()
+# Plot PSFs
+fig, ax = plt.subplots()
+ax.set_xlabel(r'r [$\mu \mathrm{m}$]')
+ax.set_ylabel(r'PSF [$\mu \mathrm{m} ^{-2}$]')
+ax.set_title('Normlised point-spread functions')
+ax.plot(PSF_pl(), label='power law + Gaussian')
+ax.plot(PSF_lr(), label='long range Gaussian only')
+ax.legend()
 
-# # Plot desired features
-# fig, ax = plt.subplots()
-# ax.set_title('Desired dose pattern as in Watson paper')
-# ax.plot(x, D_0)
+# Plot desired features
+fig, ax = plt.subplots()
+ax.set_title('Desired dose pattern as in Watson paper')
+ax.plot(x, D_0)
 
 # Plot convolution
 fig, ax = plt.subplots()
@@ -103,5 +102,3 @@ for i in range(20):
 ax.plot(x, D_i)
 
 plt.show()
-
-# %%
