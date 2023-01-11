@@ -57,7 +57,7 @@ nu = 18.3       # nm
 # Porperties of substrate
 subs_width = 40  # substrate width (um)
 x = np.arange(0, subs_width+cell_size, cell_size)
-n_cells = np.size(x)
+
 # Map out desired feature pattern WITHOUT considering scattering
 # Dose at each r value is either 1 or 0
 D_0 = np.zeros(np.size(x))
