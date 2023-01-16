@@ -50,23 +50,23 @@ PSFs = np.array([PSF_lr, PSF_pl])
 subs_width = 50  # substrate width (um)
 LB = 0
 UB = subs_width + pixel_size
-X = np.arange(LB, UB, pixel_size)
+X = np.linspace(LB, 20, 501)
 Y = np.arange(LB, UB, pixel_size)
 Mesh = np.meshgrid(X, Y)
 
 # Desired exposure pattern
 D_0 = np.zeros((np.size(X), np.size(Y)))
-startend = np.array([[[0, 1], [20, 30]],# Start/end points of desired features (um)
-                     [[4, 5], [20, 30]],
-                     [[9, 10], [20, 30]],
-                     [[14, 15], [20, 30]],
-                     [[19, 20], [20, 30]],
-                     [[24, 25], [20, 30]],
-                     [[29, 30], [20, 30]],
-                     [[34, 35], [20, 30]],
-                     [[39, 40], [20, 30]],
-                     [[44, 45], [20, 30]],
-                     [[49, 50], [20, 30]]])
+startend = np.array([[[0, 1], [12, 38]],# Start/end points of desired features (um)
+                     [[4, 5], [12, 38]],
+                     [[9, 10], [12, 38]],
+                     [[14, 15], [12, 38]],
+                     [[19, 20], [12, 38]],
+                     [[24, 25], [12, 38]],
+                     [[29, 30], [12, 38]],
+                     [[34, 35], [12, 38]],
+                     [[39, 40], [12, 38]],
+                     [[44, 45], [12, 38]],
+                     [[49, 50], [12, 38]]])
 for i, j in startend:
     D_0[int(i[0]/pixel_size) : int(i[1]/pixel_size), int(j[0]/pixel_size) : int(j[1]/pixel_size)] = 1
 
@@ -86,14 +86,13 @@ surf = axs[1].plot_surface(mesh[0], mesh[1], PSF_pl, cmap=cm.coolwarm,
 axs[0].set_title('Long-range Gaussian only')
 axs[1].set_title('Power law + long-range Gaussian')
 
-
+#%%
 # -------- Plot desired exposure dose --------
 fig, ax = plt.subplots(figsize=(8,6), subplot_kw={"projection": "3d"})
 surf = ax.plot_surface(Mesh[0], Mesh[1], D_0, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 
-
-
+#%%
 # -------- Plot corrected exposure dose --------
 fig, ax1 = plt.subplots(1, 2, figsize=(12,6), subplot_kw={"projection": "3d"})
 
@@ -110,7 +109,7 @@ for i in range(2):
      D_iplus1 = 2*D_0*(1-cnv) + cnv
      D_i = D_iplus1  / np.max(D_iplus1)  # normalise
 surf = ax1[0].plot_surface(Mesh[0], Mesh[1], D_i, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-    
+
 
 # Power law PSF
 D_i = D_0
@@ -122,3 +121,11 @@ for i in range(2):
     D_iplus1 = 2*D_0*(1-cnv) + cnv
     D_i = D_iplus1  / np.max(D_iplus1)  # normalise
 surf = ax1[1].plot_surface(Mesh[0], Mesh[1], D_i, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+
+#%%
+plt.figure()
+plt.plot(X, D_i[0])
+plt.figure()
+plt.plot(Y, D_i[0:,250])
+
+
